@@ -68,3 +68,22 @@ Measure improvement in:
 - Consistency
 - Maintainability
 - Rework reduction
+
+## 8. Playwright Configuration Standards
+
+### Test ID Attribute
+Sauce Demo uses `data-test` as its test attribute (not the Playwright default `data-testid`).
+
+To align with Playwright best practice while supporting the app's convention,
+the project configures `testIdAttribute` globally:
+
+**playwright.config.ts**
+```typescript
+use: {
+  testIdAttribute: 'data-test',
+}
+```
+
+This means:
+- All tests MUST use `getByTestId()` — never raw `locator('[data-test="..."]')`
+- Never use ID se

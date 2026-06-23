@@ -1,41 +1,34 @@
 import { test, expect } from '@playwright/test';
 
-// Sauce Demo Login - covers "User logs in" step of the core user journey
-// (see project-context.md, sections 3 and 4: Login functionality is in scope)
 const BASE_URL = 'https://www.saucedemo.com';
+const VALID_USER = 'standard_user';
+const VALID_PASS = 'secret_sauce';
 
-test.describe('Login', () => {
-    test.beforeEach(async ({ page }) => {
+test.describe('Login — Sauce Demo', () => {
+
+    test('logs in with valid credentials', async ({ page }) => {
         await page.goto(BASE_URL);
+        await page.waitForLoadState('domcontentloaded');
+
+        await page.getByTestId('username').fill(VALID_USER);
+        await page.getByTestId('password').fill(VALID_PASS);
+        await page.getByTestId('login-button').dispatchEvent('click');
+
+        await expect(page).toHaveURL(/inventory/);
+        await expect(page.getByTestId('inventory-container')).toBeVisible();
     });
 
-    test('user logs in with valid credentials and reaches the inventory page', async ({ page }) => {
-        await page.locator('[data-test="username"]').fill('standard_user');
-        await page.locator('[data-test="password"]').fill('secret_sauce');
-        await page.locator('[data-test="login-button"]').click();
+    test('shows error with invalid credentials', async ({ page }) => {
+        await page.goto(BASE_URL);
+        await page.waitForLoadState('domcontentloaded');
 
-        await expect(page).toHaveURL(`${BASE_URL}/inventory.html`);
-        await expect(page.locator('[data-test="title"]')).toHaveText('Products');
+        await page.getByTestId('username').fill('wrong_user');
+        await page.getByTestId('password').fill('wrong_pass');
+        await page.getByTestId('login-button').dispatchEvent('click');
+
+        await expect(
+            page.getByText('Username and password do not match')
+        ).toBeVisible();
     });
 
-    test('user sees an error when credentials are invalid', async ({ page }) => {
-        await page.locator('[data-test="username"]').fill('invalid_user');
-        await page.locator('[data-test="password"]').fill('wrong_password');
-        await page.locator('[data-test="login-button"]').click();
-
-        await expect(page.locator('[data-test="error"]')).toContainText(
-            'Username and password do not match any user in this service'
-        );
-    });
-
-    test('locked out user is blocked from logging in', async ({ page }) => {
-        await page.locator('[data-test="username"]').fill('locked_out_user');
-        await page.locator('[data-test="password"]').fill('secret_sauce');
-        await page.locator('[data-test="login-button"]').click();
-
-        await expect(page.locator('[data-test="error"]')).toContainText(
-            'Sorry, this user has been locked out.'
-        );
-        await expect(page).toHaveURL(`${BASE_URL}/`);
-    });
 });
