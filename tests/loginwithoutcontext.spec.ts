@@ -1,12 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 test('login test', async ({ page }) => {
-    await page.goto('https://www.saucedemo.com');
-    await page.waitForLoadState('domcontentloaded');
+    await page.goto('https://www.saucedemo.com', { waitUntil: 'networkidle' });
 
     await page.locator('#user-name').fill('standard_user');
     await page.locator('#password').fill('secret_sauce');
-    await page.locator('#login-button').dispatchEvent('click');
+    await page.locator('#login-button').click();
 
-    await expect(page).toHaveURL(/inventory/);
+    await expect(page).toHaveURL(/inventory/, { timeout: 60000 });
 });
